@@ -2,6 +2,7 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -47,11 +48,18 @@ func (c *Command) Run() error {
 		return err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	errorChan := make(chan error)
-	go func() {
-		defer close(errorChan)
-		errorChan <- c.command.Wait()
-	}()
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		case errorChan <- c.command.Wait():
+			close(errorChan)
+		}
+	}(ctx)
 
 	var err error
 	select {
