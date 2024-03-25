@@ -39,8 +39,8 @@ func main() {
     }
     task := command.NewTask(cmds, 10)
     task.Run(false)
-    if err := task.GetError(); err != nil {
-        fmt.Printf("task running error: %s\n", err.Error())
+    for _, v := range task.Result() {
+        fmt.Printf("cmd:`%s` stdout:%s stderr:%s success:%t\n", v.Cmd, v.Stdout, v.Stderr, v.Success)
     }
 }
 
